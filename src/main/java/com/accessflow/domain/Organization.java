@@ -1,66 +1,83 @@
 package com.accessflow.domain;
 
-import jakarta.persistence.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
 /**
- * Organization entity representing a multi-tenant organization.
- * Organizations can have multiple members with different roles.
+ * Organization domain entity representing a multi-tenant organization.
+ * Pure POJO with no framework dependencies - follows Clean Architecture principles.
  */
-@Entity
-@Table(name = "organizations", indexes = {
-    @Index(name = "idx_org_name", columnList = "name")
-})
-public class Organization extends BaseEntity {
+public class Organization {
 
-    @Column(name = "name", nullable = false, length = 255)
+    private UUID id;
     private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "plan", nullable = false, length = 20)
     private OrganizationPlan plan;
-
-    @Column(name = "slug", unique = true, length = 100)
     private String slug;
-
-    @Column(name = "description", length = 500)
     private String description;
-
-    @Column(name = "is_active", nullable = false)
     private boolean isActive;
-
-    @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Membership> memberships = new HashSet<>();
-
-    protected Organization() {
-    }
+    private final Set<Membership> memberships;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * Creates a new organization with the given name.
      * Organization is created with FREE plan and active status by default.
      */
-    public Organization(String name) {
-        this.name = name;
+    public Organization(UUID id, String name, Instant now) {
+        if (id == null) {
+            throw new IllegalArgumentException("Organization ID cannot be null");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Organization name cannot be null or empty");
+        }
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+
+        this.id = id;
+        this.name = name.trim();
         this.plan = OrganizationPlan.FREE;
         this.isActive = true;
+        this.memberships = new HashSet<>();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    /**
+     * Reconstitutes an organization from persistence (used by repositories).
+     */
+    public Organization(UUID id, String name, OrganizationPlan plan, String slug,
+                       String description, boolean isActive, Set<Membership> memberships,
+                       Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.plan = plan;
+        this.slug = slug;
+        this.description = description;
+        this.isActive = isActive;
+        this.memberships = memberships != null ? new HashSet<>(memberships) : new HashSet<>();
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void changeName(String newName, Instant now) {
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Organization name cannot be null or empty");
+        }
+        this.name = newName.trim();
+        this.updatedAt = now;
     }
 
     public OrganizationPlan getPlan() {
         return plan;
-    }
-
-    public void setPlan(OrganizationPlan plan) {
-        this.plan = plan;
     }
 
     public String getSlug() {
@@ -83,29 +100,92 @@ public class Organization extends BaseEntity {
         return isActive;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    /**
+     * Returns an unmodifiable view of memberships.
+     * Prevents external modification of internal state.
+     */
+    public Set<Membership> getMemberships() {
+        return Collections.unmodifiableSet(memberships);
     }
 
-    public Set<Membership> getMemberships() {
-        return memberships;
+    public void addMembership(Membership membership) {
+        if (membership == null) {
+            throw new IllegalArgumentException("Membership cannot be null");
+        }
+        this.memberships.add(membership);
+    }
+
+    public void removeMembership(Membership membership) {
+        this.memberships.remove(membership);
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
 
     /**
      * Upgrades the organization to a new plan.
+     * Uses explicit tier comparison instead of fragile ordinal().
      */
-    public void upgradePlan(OrganizationPlan newPlan) {
-        if (newPlan.ordinal() > this.plan.ordinal()) {
-            this.plan = newPlan;
-        } else {
-            throw new IllegalArgumentException("Can only upgrade to a higher plan");
+    public void upgradePlan(OrganizationPlan newPlan, Instant now) {
+        if (newPlan == null) {
+            throw new IllegalArgumentException("New plan cannot be null");
         }
+        if (!newPlan.isHigherThan(this.plan)) {
+            throw new IllegalArgumentException(
+                "Can only upgrade to a higher plan. Current: " + this.plan + ", Requested: " + newPlan
+            );
+        }
+        this.plan = newPlan;
+        this.updatedAt = now;
+    }
+
+    /**
+     * Downgrades the organization to a new plan.
+     */
+    public void downgradePlan(OrganizationPlan newPlan, Instant now) {
+        if (newPlan == null) {
+            throw new IllegalArgumentException("New plan cannot be null");
+        }
+        if (!newPlan.isLowerThan(this.plan)) {
+            throw new IllegalArgumentException(
+                "Can only downgrade to a lower plan. Current: " + this.plan + ", Requested: " + newPlan
+            );
+        }
+        this.plan = newPlan;
+        this.updatedAt = now;
     }
 
     /**
      * Deactivates the organization.
      */
-    public void deactivate() {
+    public void deactivate(Instant now) {
         this.isActive = false;
+        this.updatedAt = now;
+    }
+
+    /**
+     * Reactivates the organization.
+     */
+    public void reactivate(Instant now) {
+        this.isActive = true;
+        this.updatedAt = now;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Organization that = (Organization) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

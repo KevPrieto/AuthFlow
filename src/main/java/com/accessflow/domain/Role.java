@@ -1,67 +1,83 @@
 package com.accessflow.domain;
 
-import jakarta.persistence.*;
-
-import java.util.HashSet;
-import java.util.Set;
+import java.time.Instant;
+import java.util.*;
 
 /**
- * Role entity representing a named set of permissions.
- * Roles are assigned to users within organizations (via Membership).
+ * Role domain entity representing a named set of permissions.
+ * Pure POJO with no framework dependencies - follows Clean Architecture principles.
  */
-@Entity
-@Table(name = "roles", indexes = {
-    @Index(name = "idx_role_name", columnList = "name", unique = true)
-})
-public class Role extends BaseEntity {
+public class Role {
 
-    @Column(name = "name", nullable = false, unique = true, length = 100)
+    private UUID id;
     private String name;
-
-    @Column(name = "description", length = 500)
     private String description;
-
-    @Column(name = "is_system_role", nullable = false)
     private boolean isSystemRole;
-
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-        name = "role_permissions",
-        joinColumns = @JoinColumn(name = "role_id"),
-        inverseJoinColumns = @JoinColumn(name = "permission_id"),
-        indexes = {
-            @Index(name = "idx_role_perm_role", columnList = "role_id"),
-            @Index(name = "idx_role_perm_permission", columnList = "permission_id")
-        }
-    )
-    private Set<Permission> permissions = new HashSet<>();
-
-    protected Role() {
-    }
+    private final Set<Permission> permissions;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * Creates a new role with the given name.
      */
-    public Role(String name) {
-        this.name = name;
-        this.isSystemRole = false;
+    public Role(UUID id, String name, Instant now) {
+        this(id, name, false, now);
     }
 
     /**
-     * Creates a new system role with the given name.
-     * System roles cannot be deleted.
+     * Creates a new role with the given name and system role flag.
+     * System roles cannot be deleted or renamed.
      */
-    public Role(String name, boolean isSystemRole) {
-        this.name = name;
+    public Role(UUID id, String name, boolean isSystemRole, Instant now) {
+        if (id == null) {
+            throw new IllegalArgumentException("Role ID cannot be null");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Role name cannot be null or empty");
+        }
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+
+        this.id = id;
+        this.name = name.trim();
         this.isSystemRole = isSystemRole;
+        this.permissions = new HashSet<>();
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    /**
+     * Reconstitutes a role from persistence (used by repositories).
+     */
+    public Role(UUID id, String name, String description, boolean isSystemRole,
+                Set<Permission> permissions, Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.isSystemRole = isSystemRole;
+        this.permissions = permissions != null ? new HashSet<>(permissions) : new HashSet<>();
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void changeName(String newName, Instant now) {
+        if (this.isSystemRole) {
+            throw new IllegalStateException("System role names cannot be changed");
+        }
+        if (newName == null || newName.isBlank()) {
+            throw new IllegalArgumentException("Role name cannot be null or empty");
+        }
+        this.name = newName.trim();
+        this.updatedAt = now;
     }
 
     public String getDescription() {
@@ -76,22 +92,34 @@ public class Role extends BaseEntity {
         return isSystemRole;
     }
 
+    /**
+     * Returns an unmodifiable view of permissions.
+     * Prevents external modification of internal state.
+     */
     public Set<Permission> getPermissions() {
-        return permissions;
+        return Collections.unmodifiableSet(permissions);
     }
 
     /**
      * Adds a permission to this role.
      */
-    public void addPermission(Permission permission) {
+    public void addPermission(Permission permission, Instant now) {
+        if (permission == null) {
+            throw new IllegalArgumentException("Permission cannot be null");
+        }
         this.permissions.add(permission);
+        this.updatedAt = now;
     }
 
     /**
      * Removes a permission from this role.
      */
-    public void removePermission(Permission permission) {
+    public void removePermission(Permission permission, Instant now) {
+        if (permission == null) {
+            throw new IllegalArgumentException("Permission cannot be null");
+        }
         this.permissions.remove(permission);
+        this.updatedAt = now;
     }
 
     /**
@@ -105,7 +133,31 @@ public class Role extends BaseEntity {
      * Checks if this role has a permission by key.
      */
     public boolean hasPermission(String permissionKey) {
+        if (permissionKey == null) {
+            return false;
+        }
         return this.permissions.stream()
             .anyMatch(p -> p.getKey().equals(permissionKey));
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Role role = (Role) o;
+        return Objects.equals(id, role.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

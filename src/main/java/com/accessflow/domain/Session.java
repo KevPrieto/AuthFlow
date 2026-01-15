@@ -1,51 +1,75 @@
 package com.accessflow.domain;
 
-import jakarta.persistence.*;
-
 import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Session entity representing an active authentication session.
- * Each session is associated with a JWT token and has an expiry time.
+ * Session domain entity representing an active authentication session.
+ * Pure POJO with no framework dependencies - follows Clean Architecture principles.
  */
-@Entity
-@Table(name = "sessions", indexes = {
-    @Index(name = "idx_session_token", columnList = "token", unique = true),
-    @Index(name = "idx_session_user", columnList = "user_id"),
-    @Index(name = "idx_session_expiry", columnList = "expires_at")
-})
-public class Session extends BaseEntity {
+public class Session {
 
-    @Column(name = "token", nullable = false, unique = true, length = 500)
+    private UUID id;
     private String token;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_session_user"))
     private User user;
-
-    @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
-
-    @Column(name = "is_revoked", nullable = false)
     private boolean isRevoked;
-
-    @Column(name = "ip_address", length = 45)
     private String ipAddress;
-
-    @Column(name = "user_agent", length = 500)
     private String userAgent;
-
-    protected Session() {
-    }
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * Creates a new session for a user with the given token and expiry time.
      */
-    public Session(User user, String token, Instant expiresAt) {
+    public Session(UUID id, User user, String token, Instant expiresAt, Instant now) {
+        if (id == null) {
+            throw new IllegalArgumentException("Session ID cannot be null");
+        }
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+        if (token == null || token.isBlank()) {
+            throw new IllegalArgumentException("Token cannot be null or empty");
+        }
+        if (expiresAt == null) {
+            throw new IllegalArgumentException("Expiry time cannot be null");
+        }
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+        if (expiresAt.isBefore(now)) {
+            throw new IllegalArgumentException("Expiry time cannot be in the past");
+        }
+
+        this.id = id;
         this.user = user;
         this.token = token;
         this.expiresAt = expiresAt;
         this.isRevoked = false;
+        this.createdAt = now;
+        this.updatedAt = now;
+    }
+
+    /**
+     * Reconstitutes a session from persistence (used by repositories).
+     */
+    public Session(UUID id, String token, User user, Instant expiresAt, boolean isRevoked,
+                   String ipAddress, String userAgent, Instant createdAt, Instant updatedAt) {
+        this.id = id;
+        this.token = token;
+        this.user = user;
+        this.expiresAt = expiresAt;
+        this.isRevoked = isRevoked;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getToken() {
@@ -80,36 +104,73 @@ public class Session extends BaseEntity {
         this.userAgent = userAgent;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
     /**
      * Checks if this session is currently valid.
      * A session is valid if it's not revoked and hasn't expired.
      */
-    public boolean isValid() {
-        return !isRevoked && Instant.now().isBefore(expiresAt);
+    public boolean isValid(Instant now) {
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+        return !isRevoked && now.isBefore(expiresAt);
     }
 
     /**
      * Checks if this session has expired.
      */
-    public boolean isExpired() {
-        return Instant.now().isAfter(expiresAt);
+    public boolean isExpired(Instant now) {
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+        return now.isAfter(expiresAt);
     }
 
     /**
      * Revokes this session, making it invalid.
      */
-    public void revoke() {
+    public void revoke(Instant now) {
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
         this.isRevoked = true;
+        this.updatedAt = now;
     }
 
     /**
      * Extends the session expiry time.
      */
-    public void extendExpiry(Instant newExpiryTime) {
-        if (newExpiryTime.isAfter(this.expiresAt)) {
-            this.expiresAt = newExpiryTime;
-        } else {
+    public void extendExpiry(Instant newExpiryTime, Instant now) {
+        if (newExpiryTime == null) {
+            throw new IllegalArgumentException("New expiry time cannot be null");
+        }
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+        if (!newExpiryTime.isAfter(this.expiresAt)) {
             throw new IllegalArgumentException("New expiry time must be after current expiry time");
         }
+        this.expiresAt = newExpiryTime;
+        this.updatedAt = now;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Session session = (Session) o;
+        return Objects.equals(id, session.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

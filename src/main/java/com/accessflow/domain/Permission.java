@@ -1,48 +1,65 @@
 package com.accessflow.domain;
 
-import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.Objects;
+import java.util.UUID;
 
 /**
- * Permission entity representing a granular access right.
- * Permissions are assigned to roles, which are then assigned to users.
+ * Permission domain entity representing a granular access right.
+ * Pure POJO with no framework dependencies - follows Clean Architecture principles.
  */
-@Entity
-@Table(name = "permissions", indexes = {
-    @Index(name = "idx_permission_key", columnList = "permission_key", unique = true)
-})
-public class Permission extends BaseEntity {
+public class Permission {
 
-    @Column(name = "permission_key", nullable = false, unique = true, length = 100)
+    private UUID id;
     private String key;
-
-    @Column(name = "description", length = 500)
     private String description;
-
-    @Column(name = "resource", length = 100)
     private String resource;
-
-    @Column(name = "action", length = 50)
     private String action;
-
-    protected Permission() {
-    }
+    private Instant createdAt;
+    private Instant updatedAt;
 
     /**
      * Creates a new permission with the given key.
      * Key should follow the format: resource:action (e.g., "users:create", "orgs:read")
      */
-    public Permission(String key) {
-        this.key = key;
+    public Permission(UUID id, String key, Instant now) {
+        if (id == null) {
+            throw new IllegalArgumentException("Permission ID cannot be null");
+        }
+        if (key == null || key.isBlank()) {
+            throw new IllegalArgumentException("Permission key cannot be null or empty");
+        }
+        if (now == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+
+        this.id = id;
+        this.key = key.trim();
         parseKeyComponents();
+        this.createdAt = now;
+        this.updatedAt = now;
     }
 
     /**
      * Creates a new permission with the given key and description.
      */
-    public Permission(String key, String description) {
+    public Permission(UUID id, String key, String description, Instant now) {
+        this(id, key, now);
+        this.description = description;
+    }
+
+    /**
+     * Reconstitutes a permission from persistence (used by repositories).
+     */
+    public Permission(UUID id, String key, String description, String resource,
+                     String action, Instant createdAt, Instant updatedAt) {
+        this.id = id;
         this.key = key;
         this.description = description;
-        parseKeyComponents();
+        this.resource = resource;
+        this.action = action;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     /**
@@ -52,12 +69,16 @@ public class Permission extends BaseEntity {
     private void parseKeyComponents() {
         String[] parts = key.split(":", 2);
         if (parts.length == 2) {
-            this.resource = parts[0];
-            this.action = parts[1];
+            this.resource = parts[0].trim();
+            this.action = parts[1].trim();
         } else {
             this.resource = key;
             this.action = "access";
         }
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     public String getKey() {
@@ -80,10 +101,21 @@ public class Permission extends BaseEntity {
         return action;
     }
 
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
     /**
      * Checks if this permission applies to a specific resource and action.
      */
     public boolean matches(String resource, String action) {
+        if (resource == null || action == null) {
+            return false;
+        }
         return this.resource.equals(resource) && this.action.equals(action);
     }
 
@@ -92,5 +124,18 @@ public class Permission extends BaseEntity {
      */
     public boolean isWildcard() {
         return "*".equals(action);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Permission that = (Permission) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

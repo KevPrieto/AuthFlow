@@ -1,74 +1,82 @@
 package com.accessflow.domain;
 
-import jakarta.persistence.*;
-
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * AuditLog entity representing a security audit event.
+ * AuditLog domain entity representing a security audit event.
  * Tracks who did what, when, and on which resource.
+ * Pure POJO with no framework dependencies - follows Clean Architecture principles.
  */
-@Entity
-@Table(name = "audit_logs", indexes = {
-    @Index(name = "idx_audit_actor", columnList = "actor_id"),
-    @Index(name = "idx_audit_action", columnList = "action"),
-    @Index(name = "idx_audit_timestamp", columnList = "timestamp"),
-    @Index(name = "idx_audit_resource", columnList = "resource_type, resource_id")
-})
 public class AuditLog {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
     private UUID id;
-
-    @Column(name = "actor_id", nullable = false)
     private UUID actorId;
-
-    @Column(name = "actor_email", nullable = false, length = 255)
     private String actorEmail;
-
-    @Column(name = "action", nullable = false, length = 100)
     private String action;
-
-    @Column(name = "resource_type", nullable = false, length = 50)
     private String resourceType;
-
-    @Column(name = "resource_id")
     private UUID resourceId;
-
-    @Column(name = "organization_id")
     private UUID organizationId;
-
-    @Column(name = "timestamp", nullable = false)
     private Instant timestamp;
-
-    @Column(name = "ip_address", length = 45)
     private String ipAddress;
-
-    @Column(name = "user_agent", length = 500)
     private String userAgent;
-
-    @Column(name = "details", length = 2000)
     private String details;
-
-    @Column(name = "status", nullable = false, length = 20)
     private String status;
-
-    protected AuditLog() {
-    }
 
     /**
      * Creates a new audit log entry.
+     * Timestamp is provided as a parameter for testability and deterministic behavior.
      */
-    public AuditLog(UUID actorId, String actorEmail, String action, String resourceType) {
+    public AuditLog(UUID id, UUID actorId, String actorEmail, String action,
+                    String resourceType, Instant timestamp) {
+        if (id == null) {
+            throw new IllegalArgumentException("AuditLog ID cannot be null");
+        }
+        if (actorId == null) {
+            throw new IllegalArgumentException("Actor ID cannot be null");
+        }
+        if (actorEmail == null || actorEmail.isBlank()) {
+            throw new IllegalArgumentException("Actor email cannot be null or empty");
+        }
+        if (action == null || action.isBlank()) {
+            throw new IllegalArgumentException("Action cannot be null or empty");
+        }
+        if (resourceType == null || resourceType.isBlank()) {
+            throw new IllegalArgumentException("Resource type cannot be null or empty");
+        }
+        if (timestamp == null) {
+            throw new IllegalArgumentException("Timestamp cannot be null");
+        }
+
+        this.id = id;
         this.actorId = actorId;
         this.actorEmail = actorEmail;
         this.action = action;
         this.resourceType = resourceType;
-        this.timestamp = Instant.now();
+        this.timestamp = timestamp;
         this.status = "SUCCESS";
+    }
+
+    /**
+     * Reconstitutes an audit log from persistence (used by repositories).
+     */
+    public AuditLog(UUID id, UUID actorId, String actorEmail, String action,
+                    String resourceType, UUID resourceId, UUID organizationId,
+                    Instant timestamp, String ipAddress, String userAgent,
+                    String details, String status) {
+        this.id = id;
+        this.actorId = actorId;
+        this.actorEmail = actorEmail;
+        this.action = action;
+        this.resourceType = resourceType;
+        this.resourceId = resourceId;
+        this.organizationId = organizationId;
+        this.timestamp = timestamp;
+        this.ipAddress = ipAddress;
+        this.userAgent = userAgent;
+        this.details = details;
+        this.status = status;
     }
 
     public UUID getId() {
@@ -143,48 +151,80 @@ public class AuditLog {
         this.status = status;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AuditLog auditLog = (AuditLog) o;
+        return Objects.equals(id, auditLog.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
     /**
      * Builder for creating audit log entries with a fluent API.
      */
     public static class Builder {
-        private final AuditLog auditLog;
+        private final UUID id;
+        private final UUID actorId;
+        private final String actorEmail;
+        private final String action;
+        private final String resourceType;
+        private final Instant timestamp;
+        private UUID resourceId;
+        private UUID organizationId;
+        private String ipAddress;
+        private String userAgent;
+        private String details;
+        private String status = "SUCCESS";
 
-        public Builder(UUID actorId, String actorEmail, String action, String resourceType) {
-            this.auditLog = new AuditLog(actorId, actorEmail, action, resourceType);
+        public Builder(UUID id, UUID actorId, String actorEmail, String action,
+                      String resourceType, Instant timestamp) {
+            this.id = id;
+            this.actorId = actorId;
+            this.actorEmail = actorEmail;
+            this.action = action;
+            this.resourceType = resourceType;
+            this.timestamp = timestamp;
         }
 
         public Builder resourceId(UUID resourceId) {
-            auditLog.setResourceId(resourceId);
+            this.resourceId = resourceId;
             return this;
         }
 
         public Builder organizationId(UUID organizationId) {
-            auditLog.setOrganizationId(organizationId);
+            this.organizationId = organizationId;
             return this;
         }
 
         public Builder ipAddress(String ipAddress) {
-            auditLog.setIpAddress(ipAddress);
+            this.ipAddress = ipAddress;
             return this;
         }
 
         public Builder userAgent(String userAgent) {
-            auditLog.setUserAgent(userAgent);
+            this.userAgent = userAgent;
             return this;
         }
 
         public Builder details(String details) {
-            auditLog.setDetails(details);
+            this.details = details;
             return this;
         }
 
         public Builder status(String status) {
-            auditLog.setStatus(status);
+            this.status = status;
             return this;
         }
 
         public AuditLog build() {
-            return auditLog;
+            return new AuditLog(id, actorId, actorEmail, action, resourceType,
+                resourceId, organizationId, timestamp, ipAddress, userAgent,
+                details, status);
         }
     }
 }

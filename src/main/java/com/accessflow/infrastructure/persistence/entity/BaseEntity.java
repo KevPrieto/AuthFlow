@@ -1,4 +1,4 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 import org.springframework.data.annotation.CreatedDate;
