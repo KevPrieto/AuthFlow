@@ -87,60 +87,52 @@ run Flyway migrations on startup
 
 launch the API at http://localhost:8080
 
-##API docs
+## API Documentation
 
-Swagger UI: http://localhost:8080/swagger-ui.html
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- OpenAPI spec: `http://localhost:8080/api-docs`
 
-OpenAPI spec: http://localhost:8080/api-docs
+## Main endpoints
 
-##Main endpoints
+### Authentication
+- `POST /auth/register` — Register user
+- `POST /auth/login` — Login and receive JWT
+- `POST /auth/logout` — Invalidate session
 
-##Authentication
+### Organizations (multi-tenant)
+- `POST /orgs` — Create organization
+- `POST /orgs/{id}/invite` — Invite user to organization
 
-POST /auth/register — Register user
+### RBAC
+- `POST /roles` — Create role
+- `POST /roles/{id}/permissions` — Assign permissions to role
 
-POST /auth/login — Login and receive JWT
+### User
+- `GET /me` — Current profile
+- `GET /me/permissions` — Effective permissions
 
-POST /auth/logout — Invalidate session
+### Audit
+- `GET /audit` — Query audit logs
 
-Organizations (multi-tenant)
+## Domain model (core)
 
-POST /orgs — Create organization
+- **User** — authenticated identity
+- **Organization** — tenant boundary
+- **Membership** — user ↔ organization link with roles
+- **Role** — named permission set
+- **Permission** — granular access rights
+- **Session** — active authentication session tracking
+- **AuditLog** — append-only audit trail
 
-POST /orgs/{id}/invite — Invite user to organization
+## Testing
 
-RBAC
+```bash
+# unit tests
+mvn test
 
-POST /roles — Create role
-
-POST /roles/{id}/permissions — Assign permissions to role
-
-User
-
-GET /me — Current profile
-
-GET /me/permissions — Effective permissions
-
-Audit
-
-GET /audit — Query audit logs
-
-Domain model (core)
-
-User — authenticated identity
-
-Organization — tenant boundary
-
-Membership — user ↔ organization link with roles
-
-Role — named permission set
-
-Permission — granular access rights
-
-Session — active authentication session tracking
-
-AuditLog — append-only audit trail
-
+# integration tests (uses Testcontainers)
+mvn verify
+```
 ## Configuration 
 -Environment variables
 | Variable         | Description         | Default      |
@@ -154,26 +146,18 @@ AuditLog — append-only audit trail
 | `JWT_EXPIRATION` | JWT expiration (ms) | `86400000`   |
 | `PORT`           | Application port    | `8080`       |
 
-## Testing
-
-# unit tests
-mvn test
-
-# integration tests (uses Testcontainers)
-mvn verify 
-
-##Production notes (security/ops)
+## Production notes (security/ops)
 
 If adapting this to a real production system:
--use a strong JWT_SECRET and rotate secrets properly
--enforce TLS/HTTPS
--apply rate limiting at the edge (gateway / reverse proxy)
--lock down CORS and security headers
--use least-privilege DB credentials
--implement monitoring/alerting and structured logging
+
+- Use a strong `JWT_SECRET` and rotate secrets properly
+- Enforce TLS/HTTPS
+- Apply rate limiting at the edge (gateway / reverse proxy)
+- Lock down CORS and security headers
+- Use least-privilege DB credentials
+- Implement monitoring/alerting and structured logging
 
 ## Project tracking
 
-Implementation details and progress live in TRACKING.md.
-
+Implementation details and progress live in `TRACKING.md`.
 
