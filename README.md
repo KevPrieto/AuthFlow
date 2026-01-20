@@ -1,5 +1,7 @@
 # AccessFlow
 
+<img width="355" height="175" alt="image" src="https://github.com/user-attachments/assets/a93a4171-c7cd-4145-be67-c3371238487e" />
+
 Production-grade backend for SaaS authentication, authorization (RBAC), multi-tenant organizations, and audit logging — built as a modular monolith with clean architecture, migrations, and containerized runtime.
 
 ---
