@@ -1,8 +1,10 @@
 # AccessFlow
 
-<img width="355" height="175" alt="image" src="https://github.com/user-attachments/assets/a93a4171-c7cd-4145-be67-c3371238487e" />
+<img width="484" height="147" alt="image" src="https://github.com/user-attachments/assets/0dd6e6db-5486-42bb-ad1a-897fb3e605c5" />
 
-Production-grade backend for SaaS authentication, authorization (RBAC), multi-tenant organizations, and audit logging — built as a modular monolith with clean architecture, migrations, and containerized runtime.
+
+Production-grade backend for SaaS authentication, authorization (RBAC), multi-tenant organizations, and audit logging — built as a modular monolith with clean architecture, migrations, and containerized runtime. 
+
 
 ---
 
@@ -162,4 +164,8 @@ If adapting this to a real production system:
 ## Project tracking
 
 Implementation details and progress live in `TRACKING.md`.
+
+
+<img width="356" height="162" alt="image" src="https://github.com/user-attachments/assets/fd6e8efb-c617-4306-ae78-d7302d7de619" />
+
 
