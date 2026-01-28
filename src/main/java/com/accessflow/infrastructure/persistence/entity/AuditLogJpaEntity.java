@@ -1,4 +1,4 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
@@ -16,12 +16,8 @@ import java.util.UUID;
     @Index(name = "idx_audit_timestamp", columnList = "timestamp"),
     @Index(name = "idx_audit_resource", columnList = "resource_type, resource_id")
 })
-public class AuditLog {
+public class AuditLogJpaEntity extends BaseJpaEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "id", updatable = false, nullable = false)
-    private UUID id;
 
     @Column(name = "actor_id", nullable = false)
     private UUID actorId;
@@ -41,9 +37,6 @@ public class AuditLog {
     @Column(name = "organization_id")
     private UUID organizationId;
 
-    @Column(name = "timestamp", nullable = false)
-    private Instant timestamp;
-
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
@@ -56,39 +49,53 @@ public class AuditLog {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
-    protected AuditLog() {
+    @Column(name = "timestamp")
+    private Instant timestamp;
+
+    public AuditLogJpaEntity() {
     }
 
     /**
      * Creates a new audit log entry.
      */
-    public AuditLog(UUID actorId, String actorEmail, String action, String resourceType) {
+    public AuditLogJpaEntity(UUID actorId, String actorEmail, String action, String resourceType) {
         this.actorId = actorId;
         this.actorEmail = actorEmail;
         this.action = action;
         this.resourceType = resourceType;
-        this.timestamp = Instant.now();
         this.status = "SUCCESS";
-    }
-
-    public UUID getId() {
-        return id;
     }
 
     public UUID getActorId() {
         return actorId;
     }
 
+    public void setActorId(UUID actorId) {
+        this.actorId = actorId;
+    }
+
     public String getActorEmail() {
         return actorEmail;
+    }
+
+    public void setActorEmail(String actorEmail) {
+        this.actorEmail = actorEmail;
     }
 
     public String getAction() {
         return action;
     }
 
+    public void setAction(String action) {
+        this.action = action;
+    }
+
     public String getResourceType() {
         return resourceType;
+    }
+
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
     }
 
     public UUID getResourceId() {
@@ -105,10 +112,6 @@ public class AuditLog {
 
     public void setOrganizationId(UUID organizationId) {
         this.organizationId = organizationId;
-    }
-
-    public Instant getTimestamp() {
-        return timestamp;
     }
 
     public String getIpAddress() {
@@ -143,14 +146,22 @@ public class AuditLog {
         this.status = status;
     }
 
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
+    }
+
     /**
      * Builder for creating audit log entries with a fluent API.
      */
     public static class Builder {
-        private final AuditLog auditLog;
+        private final AuditLogJpaEntity auditLog;
 
         public Builder(UUID actorId, String actorEmail, String action, String resourceType) {
-            this.auditLog = new AuditLog(actorId, actorEmail, action, resourceType);
+            this.auditLog = new AuditLogJpaEntity(actorId, actorEmail, action, resourceType);
         }
 
         public Builder resourceId(UUID resourceId) {
@@ -183,7 +194,7 @@ public class AuditLog {
             return this;
         }
 
-        public AuditLog build() {
+        public AuditLogJpaEntity build() {
             return auditLog;
         }
     }

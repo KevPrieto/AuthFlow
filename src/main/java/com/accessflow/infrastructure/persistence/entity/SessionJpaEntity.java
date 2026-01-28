@@ -1,4 +1,4 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
@@ -14,14 +14,14 @@ import java.time.Instant;
     @Index(name = "idx_session_user", columnList = "user_id"),
     @Index(name = "idx_session_expiry", columnList = "expires_at")
 })
-public class Session extends BaseEntity {
+public class SessionJpaEntity extends BaseJpaEntity {
 
     @Column(name = "token", nullable = false, unique = true, length = 500)
     private String token;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_session_user"))
-    private User user;
+    private UserJpaEntity user;
 
     @Column(name = "expires_at", nullable = false)
     private Instant expiresAt;
@@ -35,13 +35,13 @@ public class Session extends BaseEntity {
     @Column(name = "user_agent", length = 500)
     private String userAgent;
 
-    protected Session() {
+    public SessionJpaEntity() {
     }
 
     /**
      * Creates a new session for a user with the given token and expiry time.
      */
-    public Session(User user, String token, Instant expiresAt) {
+    public SessionJpaEntity(UserJpaEntity user, String token, Instant expiresAt) {
         this.user = user;
         this.token = token;
         this.expiresAt = expiresAt;
@@ -52,16 +52,32 @@ public class Session extends BaseEntity {
         return token;
     }
 
-    public User getUser() {
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public UserJpaEntity getUser() {
         return user;
+    }
+
+    public void setUser(UserJpaEntity user) {
+        this.user = user;
     }
 
     public Instant getExpiresAt() {
         return expiresAt;
     }
 
+    public void setExpiresAt(Instant expiresAt) {
+        this.expiresAt = expiresAt;
+    }
+
     public boolean isRevoked() {
         return isRevoked;
+    }
+
+    public void setRevoked(boolean revoked) {
+        isRevoked = revoked;
     }
 
     public String getIpAddress() {

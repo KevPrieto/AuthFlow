@@ -1,4 +1,4 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
@@ -17,49 +17,57 @@ import jakarta.persistence.*;
         @Index(name = "idx_membership_role", columnList = "role_id")
     }
 )
-public class Membership extends BaseEntity {
+public class MembershipJpaEntity extends BaseJpaEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(name = "fk_membership_user"))
-    private User user;
+    private UserJpaEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "organization_id", nullable = false, foreignKey = @ForeignKey(name = "fk_membership_org"))
-    private Organization organization;
+    private OrganizationJpaEntity organization;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "role_id", nullable = false, foreignKey = @ForeignKey(name = "fk_membership_role"))
-    private Role role;
+    private RoleJpaEntity role;
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
 
-    protected Membership() {
+    public MembershipJpaEntity() {
     }
 
     /**
      * Creates a new membership connecting a user to an organization with a specific role.
      */
-    public Membership(User user, Organization organization, Role role) {
+    public MembershipJpaEntity(UserJpaEntity user, OrganizationJpaEntity organization, RoleJpaEntity role) {
         this.user = user;
         this.organization = organization;
         this.role = role;
         this.isActive = true;
     }
 
-    public User getUser() {
+    public UserJpaEntity getUser() {
         return user;
     }
 
-    public Organization getOrganization() {
+    public void setUser(UserJpaEntity user) {
+        this.user = user;
+    }
+
+    public OrganizationJpaEntity getOrganization() {
         return organization;
     }
 
-    public Role getRole() {
+    public void setOrganization(OrganizationJpaEntity organization) {
+        this.organization = organization;
+    }
+
+    public RoleJpaEntity getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(RoleJpaEntity role) {
         this.role = role;
     }
 

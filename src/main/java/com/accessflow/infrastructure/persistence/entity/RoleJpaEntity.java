@@ -1,4 +1,4 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
@@ -13,7 +13,7 @@ import java.util.Set;
 @Table(name = "roles", indexes = {
     @Index(name = "idx_role_name", columnList = "name", unique = true)
 })
-public class Role extends BaseEntity {
+public class RoleJpaEntity extends BaseJpaEntity {
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
     private String name;
@@ -34,15 +34,15 @@ public class Role extends BaseEntity {
             @Index(name = "idx_role_perm_permission", columnList = "permission_id")
         }
     )
-    private Set<Permission> permissions = new HashSet<>();
+    private Set<PermissionJpaEntity> permissions = new HashSet<>();
 
-    protected Role() {
+    public RoleJpaEntity() {
     }
 
     /**
      * Creates a new role with the given name.
      */
-    public Role(String name) {
+    public RoleJpaEntity(String name) {
         this.name = name;
         this.isSystemRole = false;
     }
@@ -51,7 +51,7 @@ public class Role extends BaseEntity {
      * Creates a new system role with the given name.
      * System roles cannot be deleted.
      */
-    public Role(String name, boolean isSystemRole) {
+    public RoleJpaEntity(String name, boolean isSystemRole) {
         this.name = name;
         this.isSystemRole = isSystemRole;
     }
@@ -76,28 +76,36 @@ public class Role extends BaseEntity {
         return isSystemRole;
     }
 
-    public Set<Permission> getPermissions() {
+    public void setSystemRole(boolean systemRole) {
+        isSystemRole = systemRole;
+    }
+
+    public Set<PermissionJpaEntity> getPermissions() {
         return permissions;
+    }
+
+    public void setPermissions(Set<PermissionJpaEntity> permissions) {
+        this.permissions = permissions;
     }
 
     /**
      * Adds a permission to this role.
      */
-    public void addPermission(Permission permission) {
+    public void addPermission(PermissionJpaEntity permission) {
         this.permissions.add(permission);
     }
 
     /**
      * Removes a permission from this role.
      */
-    public void removePermission(Permission permission) {
+    public void removePermission(PermissionJpaEntity permission) {
         this.permissions.remove(permission);
     }
 
     /**
      * Checks if this role has a specific permission.
      */
-    public boolean hasPermission(Permission permission) {
+    public boolean hasPermission(PermissionJpaEntity permission) {
         return this.permissions.contains(permission);
     }
 

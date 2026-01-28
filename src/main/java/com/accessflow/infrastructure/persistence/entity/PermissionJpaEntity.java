@@ -1,4 +1,4 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
 import jakarta.persistence.*;
 
@@ -10,7 +10,7 @@ import jakarta.persistence.*;
 @Table(name = "permissions", indexes = {
     @Index(name = "idx_permission_key", columnList = "permission_key", unique = true)
 })
-public class Permission extends BaseEntity {
+public class PermissionJpaEntity extends BaseJpaEntity {
 
     @Column(name = "permission_key", nullable = false, unique = true, length = 100)
     private String key;
@@ -24,14 +24,14 @@ public class Permission extends BaseEntity {
     @Column(name = "action", length = 50)
     private String action;
 
-    protected Permission() {
+    public PermissionJpaEntity() {
     }
 
     /**
      * Creates a new permission with the given key.
      * Key should follow the format: resource:action (e.g., "users:create", "orgs:read")
      */
-    public Permission(String key) {
+    public PermissionJpaEntity(String key) {
         this.key = key;
         parseKeyComponents();
     }
@@ -39,7 +39,7 @@ public class Permission extends BaseEntity {
     /**
      * Creates a new permission with the given key and description.
      */
-    public Permission(String key, String description) {
+    public PermissionJpaEntity(String key, String description) {
         this.key = key;
         this.description = description;
         parseKeyComponents();
@@ -64,6 +64,11 @@ public class Permission extends BaseEntity {
         return key;
     }
 
+    public void setKey(String key) {
+        this.key = key;
+        parseKeyComponents();
+    }
+
     public String getDescription() {
         return description;
     }
@@ -76,8 +81,16 @@ public class Permission extends BaseEntity {
         return resource;
     }
 
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
     public String getAction() {
         return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
     }
 
     /**

@@ -1,5 +1,6 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
+import com.accessflow.domain.OrganizationPlan;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -13,7 +14,7 @@ import java.util.Set;
 @Table(name = "organizations", indexes = {
     @Index(name = "idx_org_name", columnList = "name")
 })
-public class Organization extends BaseEntity {
+public class OrganizationJpaEntity extends BaseJpaEntity {
 
     @Column(name = "name", nullable = false, length = 255)
     private String name;
@@ -32,16 +33,16 @@ public class Organization extends BaseEntity {
     private boolean isActive;
 
     @OneToMany(mappedBy = "organization", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Membership> memberships = new HashSet<>();
+    private Set<MembershipJpaEntity> memberships = new HashSet<>();
 
-    protected Organization() {
+    public OrganizationJpaEntity() {
     }
 
     /**
      * Creates a new organization with the given name.
      * Organization is created with FREE plan and active status by default.
      */
-    public Organization(String name) {
+    public OrganizationJpaEntity(String name) {
         this.name = name;
         this.plan = OrganizationPlan.FREE;
         this.isActive = true;
@@ -87,7 +88,7 @@ public class Organization extends BaseEntity {
         isActive = active;
     }
 
-    public Set<Membership> getMemberships() {
+    public Set<MembershipJpaEntity> getMemberships() {
         return memberships;
     }
 

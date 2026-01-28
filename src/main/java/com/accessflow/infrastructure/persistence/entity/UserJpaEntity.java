@@ -1,5 +1,6 @@
-package com.accessflow.domain;
+package com.accessflow.infrastructure.persistence.entity;
 
+import com.accessflow.domain.UserStatus;
 import jakarta.persistence.*;
 
 import java.util.HashSet;
@@ -13,7 +14,7 @@ import java.util.Set;
 @Table(name = "users", indexes = {
     @Index(name = "idx_user_email", columnList = "email", unique = true)
 })
-public class User extends BaseEntity {
+public class UserJpaEntity extends BaseJpaEntity {
 
     @Column(name = "email", nullable = false, unique = true, length = 255)
     private String email;
@@ -32,16 +33,16 @@ public class User extends BaseEntity {
     private String lastName;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Membership> memberships = new HashSet<>();
+    private Set<MembershipJpaEntity> memberships = new HashSet<>();
 
-    protected User() {
+    public UserJpaEntity() {
     }
 
     /**
      * Creates a new user with the given email and password hash.
      * User is created in PENDING status by default.
      */
-    public User(String email, String passwordHash) {
+    public UserJpaEntity(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash;
         this.status = UserStatus.PENDING;
@@ -87,7 +88,7 @@ public class User extends BaseEntity {
         this.lastName = lastName;
     }
 
-    public Set<Membership> getMemberships() {
+    public Set<MembershipJpaEntity> getMemberships() {
         return memberships;
     }
 
