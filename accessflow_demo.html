@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>AccessFlow - Backend SaaS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        header {
+            text-align: center;
+            padding: 60px 0;
+            color: white;
+        }
+        
+        h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.5em;
+            opacity: 0.95;
+            margin-bottom: 10px;
+        }
+        
+        .author {
+            font-size: 1.1em;
+            opacity: 0.8;
+            margin-top: 20px;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 20px;
+            padding: 60px;
+            margin: 40px 0;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        .section {
+            margin: 50px 0;
+        }
+        
+        .section-title {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 30px;
+            border-bottom: 4px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .feature-number {
+            font-size: 3em;
+            font-weight: bold;
+            opacity: 0.3;
+            margin-bottom: 10px;
+        }
+        
+        .feature-title {
+            font-size: 1.3em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .architecture-layer {
+            background: #f8f9fa;
+            border-left: 5px solid #667eea;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .architecture-layer:hover {
+            background: #e9ecef;
+            transform: translateX(10px);
+        }
+        
+        .layer-title {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .layer-desc {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .tech-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1em;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .endpoints {
+            margin: 30px 0;
+        }
+        
+        .endpoint {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .endpoint:hover {
+            background: #e9ecef;
+            transform: scale(1.02);
+        }
+        
+        .method {
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .method.post {
+            background: #28a745;
+            color: white;
+        }
+        
+        .method.get {
+            background: #007bff;
+            color: white;
+        }
+        
+        .endpoint-path {
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+            color: #667eea;
+            font-weight: 600;
+            flex: 1;
+        }
+        
+        .endpoint-desc {
+            color: #666;
+            flex: 2;
+        }
+        
+        .security-list {
+            list-style: none;
+            margin: 30px 0;
+        }
+        
+        .security-item {
+            padding: 20px;
+            margin: 15px 0;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 1.2em;
+        }
+        
+        .check-icon {
+            width: 40px;
+            height: 40px;
+            background: #28a745;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        
+        .repo-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px;
+            border-radius: 20px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .repo-title {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+        }
+        
+        .repo-link {
+            font-family: 'Courier New', monospace;
+            font-size: 2em;
+            color: white;
+            background: rgba(255,255,255,0.2);
+            padding: 20px 40px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 20px 0;
+        }
+        
+        .branch-info {
+            font-size: 1.3em;
+            opacity: 0.9;
+            margin-top: 20px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: white;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🔐 AccessFlow</h1>
+            <div class="subtitle">Backend SaaS para Autenticação, Autorização e Auditoria</div>
+            <div class="author">Desenvolvido por Kevin Prieto</div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="content">
+            <div class="section">
+                <h2 class="section-title">O que é AccessFlow?</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-number">01</div>
+                        <div class="feature-title">Autenticação Completa</div>
+                        <p>Sistema backend robusto para gestão completa de autenticação de usuários</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">02</div>
+                        <div class="feature-title">RBAC</div>
+                        <p>Controle de acesso baseado em roles (Role-Based Access Control)</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">03</div>
+                        <div class="feature-title">Auditoria</div>
+                        <p>Sistema de auditoria automática de todas as ações</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">04</div>
+                        <div class="feature-title">Multi-tenant</div>
+                        <p>Suporte completo para múltiplas organizações</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-number">05</div>
+                        <div class="feature-title">API REST</div>
+                        <p>API RESTful completa e documentada</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Clean Architecture</h2>
+                <div class="architecture-layer">
+                    <div class="layer-title">🎯 Domain Layer</div>
+                    <div class="layer-desc">Entidades puras: User, Organization, Role, Permission</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-title">💼 Application Layer</div>
+                    <div class="layer-desc">DTOs e Serviços de negócio</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-title">🔧 Infrastructure Layer</div>
+                    <div class="layer-desc">PostgreSQL, JPA, Security</div>
+                </div>
+                <div class="architecture-layer">
+                    <div class="layer-title">🌐 API Layer</div>
+                    <div class="layer-desc">Controllers REST</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Stack Tecnológico</h2>
+                <div class="tech-stack">
+                    <div class="tech-badge">☕ Java 17</div>
+                    <div class="tech-badge">🍃 Spring Boot 3.2.1</div>
+                    <div class="tech-badge">🔒 Spring Security + JWT</div>
+                    <div class="tech-badge">🐘 PostgreSQL 16</div>
+                    <div class="tech-badge">🔄 Flyway</div>
+                    <div class="tech-badge">🐳 Docker</div>
+                    <div class="tech-badge">📦 Maven</div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">API REST - Endpoints</h2>
+                <div class="endpoints">
+                    <div class="endpoint">
+                        <div class="method post">POST</div>
+                        <div class="endpoint-path">/auth/register</div>
+                        <div class="endpoint-desc">Registro de novos usuários</div>
+                    </div>
+                    <div class="endpoint">
+                        <div class="method post">POST</div>
+                        <div class="endpoint-path">/auth/login</div>
+                        <div class="endpoint-desc">Autenticação com JWT</div>
+                    </div>
+                    <div class="endpoint">
+                        <div class="method post">POST</div>
+                        <div class="endpoint-path">/auth/logout</div>
+                        <div class="endpoint-desc">Revogação de sessão</div>
+                    </div>
+                    <div class="endpoint">
+                        <div class="method get">GET</div>
+                        <div class="endpoint-path">/me</div>
+                        <div class="endpoint-desc">Perfil do usuário autenticado</div>
+                    </div>
+                    <div class="endpoint">
+                        <div class="method post">POST</div>
+                        <div class="endpoint-path">/orgs</div>
+                        <div class="endpoint-desc">Criar nova organização</div>
+                    </div>
+                    <div class="endpoint">
+                        <div class="method get">GET</div>
+                        <div class="endpoint-path">/orgs</div>
+                        <div class="endpoint-desc">Listar todas organizações</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h2 class="section-title">Segurança</h2>
+                <ul class="security-list">
+                    <li class="security-item">
+                        <div class="check-icon">✓</div>
+                        <div>JWT stateless authentication</div>
+                    </li>
+                    <li class="security-item">
+                        <div class="check-icon">✓</div>
+                        <div>BCrypt password hashing</div>
+                    </li>
+                    <li class="security-item">
+                        <div class="check-icon">✓</div>
+                        <div>Session management com revogação</div>
+                    </li>
+                    <li class="security-item">
+                        <div class="check-icon">✓</div>
+                        <div>Global exception handling</div>
+                    </li>
+                    <li class="security-item">
+                        <div class="check-icon">✓</div>
+                        <div>Validação completa de requests</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="repo-section">
+            <div class="repo-title">📂 Acesso ao Código</div>
+            <div class="repo-link">github.com/KevPrieto/AuthFlow</div>
+            <div class="branch-info">Branch: claude/init-accessflow-tracking-aptxB</div>
+        </div>
+    </div>
+    
+    <footer>
+        <div class="container">
+            Desenvolvido com ❤️ usando Clean Architecture e as melhores práticas
+        </div>
+    </footer>
+</body>
+</html>
